@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Autocorrect
@@ -172,9 +173,21 @@ public class Autocorrect {
 
     // Check to see if letter is between a-z
     private static boolean checkValid (int val) {
-        if (val < 0 || val > 26) {
+        if (val < 0 || val > 25) {
             return false;
         }
         return true;
+    }
+
+    public static void main(String[] args) {
+        String[] words = loadDictionary("large");
+        Autocorrect autocorrect = new Autocorrect(words, 2);
+
+        Scanner scanner = new Scanner(System.in);
+        String typed = scanner.nextLine();
+        String[] results = autocorrect.runTest(typed);
+        for (int i = 0; i < results.length; i++) {
+            System.out.println(results[i]);
+        }
     }
 }
