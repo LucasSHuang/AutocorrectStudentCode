@@ -26,15 +26,22 @@ public class Autocorrect {
         this.threshold = threshold;
         this.combinations = new ArrayList[676];
 
+        // Go through every word in the dictionary
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
+
+            // For every word get every two letter combination
             for (int j = 0; j < words[i].length() - 1; j++) {
                 int firstLetter = word.charAt(j) - 'a';
                 int secondLetter = word.charAt(j + 1) - 'a';
 
+                // Check to make sure there isn't a dash or something else that isn't a letter
                 if (!checkValid(firstLetter) || !checkValid(secondLetter)) {
                     continue;
                 }
+
+                // Get unique index of combination and then add it to arraylist using the index the of the word in the
+                // dictionary
                 int index = firstLetter * 26 + secondLetter;
                 if (combinations[index] == null) {
                     combinations[index] = new ArrayList<Integer>();
@@ -53,6 +60,8 @@ public class Autocorrect {
     public String[] runTest(String typed) {
 
         ArrayList<Pair> success = new ArrayList<Pair>();
+
+        // Go through every two letter combination of the typed word
         for (int i = 0; i < typed.length() - 1; i++) {
             int firstLetter = typed.charAt(i) - 'a';
             int secondLetter = typed.charAt(i + 1) - 'a';
@@ -60,9 +69,12 @@ public class Autocorrect {
                 continue;
             }
             int index = firstLetter * 26 + secondLetter;
+
+            // If no arraylist at that index not a possible two letter combination
             if (combinations[index] == null) {
                 continue;
             }
+            // Go through every dictionary word in that combination index and check edit distance
             for (int j = 0; j < combinations[index].size(); j++) {
                 int wordIndex = combinations[index].get(j);
                 int distance = calcDistance(typed, words[wordIndex]);
@@ -72,6 +84,7 @@ public class Autocorrect {
             }
         }
 
+        // Go through all the successful words and compare them to each other
         for (int i = 0; i < success.size(); i++) {
             for (int j = i + 1; j < success.size(); j++) {
                 Pair first = success.get(i);
@@ -81,6 +94,7 @@ public class Autocorrect {
                 String firstWord = first.getWord();
                 String secondWord = second.getWord();
 
+                // Swap if out of order by distance or alphabetically
                 boolean greaterDistance = firstLen > secondLen;
                 boolean wrongAlphaOrder = firstLen == secondLen && firstWord.compareTo(secondWord) > 0;
                 if (greaterDistance || wrongAlphaOrder) {
@@ -90,6 +104,7 @@ public class Autocorrect {
             }
         }
 
+        // Move sorted arraylist into array
         String[] results = new String[success.size()];
         for (int i = 0; i < results.length; i++) {
             results[i] = success.get(i).getWord();
@@ -97,14 +112,21 @@ public class Autocorrect {
         return results;
     }
 
+    // Calculate error distance between two words
     public int calcDistance (String typed, String comparison) {
+
         int[][] arr = new int[typed.length() + 1][comparison.length() + 1];
+
+        // Fill out all base cases where distance will always be length of the word
         for (int i = 0; i < arr.length; i++) {
             arr[i][0] = i;
         }
         for (int j = 0; j < arr[0].length; j++) {
             arr[0][j] = j;
         }
+
+        // Go through all spots on the table and if the tails aren't the same then take the smallest distance of the
+        // substitution, addition, and deletion cases
         for (int i = 1; i < arr.length; i++) {
             for (int j = 1; j < arr[0].length; j++) {
                 if (typed.charAt(i - 1) != comparison.charAt(j - 1)) {
@@ -148,6 +170,7 @@ public class Autocorrect {
         }
     }
 
+    // Check to see if letter is between a-z
     private static boolean checkValid (int val) {
         if (val < 0 || val > 26) {
             return false;
