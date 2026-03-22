@@ -15,6 +15,7 @@ public class Autocorrect {
 
     private String[] words;
     private int threshold;
+    private ArrayList<Integer>[] combinations;
     /**
      * Constucts an instance of the Autocorrect class.
      * @param words The dictionary of acceptable words.
@@ -23,6 +24,24 @@ public class Autocorrect {
     public Autocorrect(String[] words, int threshold) {
         this.words = words;
         this.threshold = threshold;
+        this.combinations = new ArrayList[676];
+
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            for (int j = 0; j < words[i].length() - 1; j++) {
+                int firstLetter = word.charAt(j) - 'a';
+                int secondLetter = word.charAt(j + 1) - 'a';
+
+                if (!checkValid(firstLetter) || !checkValid(secondLetter)) {
+                    continue;
+                }
+                int index = firstLetter * 26 + secondLetter;
+                if (combinations[index] == null) {
+                    combinations[index] = new ArrayList<Integer>();
+                }
+                combinations[index].add(i);
+            }
+        }
     }
 
     /**
@@ -32,11 +51,24 @@ public class Autocorrect {
      * to threshold, sorted by edit distnace, then sorted alphabetically.
      */
     public String[] runTest(String typed) {
+
         ArrayList<Pair> success = new ArrayList<Pair>();
-        for (int i = 0; i < words.length; i++) {
-            int distance = calcDistance(typed, words[i]);
-            if (distance <= threshold) {
-                success.add(new Pair(words[i], distance));
+        for (int i = 0; i < typed.length() - 1; i++) {
+            int firstLetter = typed.charAt(i) - 'a';
+            int secondLetter = typed.charAt(i + 1) - 'a';
+            if (!checkValid(firstLetter) || !checkValid(secondLetter)) {
+                continue;
+            }
+            int index = firstLetter * 26 + secondLetter;
+            if (combinations[index] == null) {
+                continue;
+            }
+            for (int j = 0; j < combinations[index].size(); j++) {
+                int wordIndex = combinations[index].get(j);
+                int distance = calcDistance(typed, words[wordIndex]);
+                if (distance <= threshold) {
+                    success.add(new Pair(words[wordIndex], distance));
+                }
             }
         }
 
@@ -114,5 +146,12 @@ public class Autocorrect {
         catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static boolean checkValid (int val) {
+        if (val < 0 || val > 26) {
+            return false;
+        }
+        return true;
     }
 }
